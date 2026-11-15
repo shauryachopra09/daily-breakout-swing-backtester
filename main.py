@@ -34,6 +34,9 @@ def run_daily_breakout_backtest(ticker_symbol,
         print(f"No data fetched for {ticker_symbol}.")
         return
 
+    if isinstance(data.columns, pd.MultiIndex):
+        data.columns = data.columns.get_level_values(0)
+
     print(f"--- Running Daily Breakout Backtest for: {ticker_symbol} ---")
     print(f"--- Period: {period} ---")
 
@@ -132,7 +135,9 @@ def run_daily_breakout_backtest(ticker_symbol,
 
             # Calculate Position Size *before* entry
             risk_per_trade_rs = current_balance * risk_per_trade_percent
-            number_of_shares = math.floor(risk_per_trade_rs / trade_range)
+            number_of_shares = min(math.floor(risk_per_trade_rs / trade_range),
+                                   math.floor(current_balance / opening_range_high))
+
 
             if number_of_shares == 0:
                 continue  # Insufficient capital for this trade's risk
